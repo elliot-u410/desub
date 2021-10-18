@@ -12,9 +12,9 @@ members = [
 	"substrate-metadata-versions/metadatav11",
 ]
 
-#exclude = [
-#	"bin/tx-decoder"
-#]
+exclude = [
+	"dev"
+]
 
 [patch.crates-io]
 # codec = { git = "https://github.com/insipx/parity-scale-codec", version = "1.3", branch = "insipx/debugging", package = "parity-scale-codec" }

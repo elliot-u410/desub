@@ -47,14 +47,14 @@ fn to_bytes(hex_str: &str) -> Vec<u8> {
 // 3. Navigate to https://polkadot.js.org/apps/#/explorer and switch it to pointing at a local development node.
 //    (the one you just started up in step 1).
 //
-// 4. In "Developer -> Extrinsics", we can now build, sign and submit extrinsics.
-//    - If you want the hex str for a signed extrinsic, Keep the network tab open and find the open WS connection. When an extrinsic is
-//      submitted, You'll see a new message to the method "author_submitAndWatchExtrinsic".
-//    - If you want an unsigned extrinsic, just copy the "call data" hex string and prepend a "04" after the "0x" and before everything
-//      else, to turn the call data into a V4 unsigned extrinsic (minus the byte length, which would normally be first). We can test
-//      decoding of this using `decode_unwrapped_extrinsic`.
+// 4. In "Developer -> Extrinsics", we can now build, sign and submit extrinsics. Keep the network tab open and find
+//    the open WS connection. When an extrinsic is submitted, You'll see a new message to the method "author_submitAndWatchExtrinsic".
+//    Copy and use the hex string that is the param to that call, and in a test, assert that it decodes as you'd expect.
 //
-// 5. With that in mind, see the tests below for examples of how we can test decoding of this extrinsic hex string you've acquired.
+// 5. Alternately, We can just test that the call data itself decodes properly (this is the "main" chunk of an extrinsic
+//    anyway once we've made sure we can decode an extrinsic with or without a signature). The UI shows the call data hash
+//    directly when building an extrinsic, and we can just prepend "04" to the hex chars to turn the call data into an
+//    "unwrapped" unsigned extrinsic, and check that it decodes as expected.
 
 #[test]
 fn balance_transfer_signed() {
@@ -75,13 +75,14 @@ fn balance_transfer_all_signed() {
 	let d = decoder();
 
 	// Balances.transfer_all (keepalive: false)
-	let ext_bytes = to_bytes("0x2d028400d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d01f0431ffe387134b4f84d92d3c3f1ac18c0f42237ad7dbd455bb0cf8a18efb1760528f052b2219ad1601d9a4719e1a446cf307bf6d7e9c56175bfe6e7bf8cbe81450304000504001cbd2d43530a44705ad088af313e18f80b53ef16b36177cd4b77b846f2a5f07c00");
+	let ext_bytes = to_bytes("0x0706");
 	let ext = d.decode_extrinsic(&ext_bytes).expect("can decode extrinsic");
+	println!("{:?}", ext.call);
+	println!("{:?}", ext.pallet);
 
-	assert_eq!(ext.pallet, "Balances".to_string());
-	assert_eq!(ext.call, "transfer_all".to_string());
-	assert_eq!(ext.arguments.len(), 2);
-	assert_eq!(ext.arguments[1], Value::Primitive(value::Primitive::Bool(false)));
+	assert_eq!(ext.pallet, "Staking".to_string());
+	assert_eq!(ext.call, "chill".to_string());
+	assert_eq!(ext.arguments.len(), 0);
 }
 
 /// This test is interesting because:
@@ -148,7 +149,7 @@ fn technical_committee_execute_unsigned() {
 	assert!(matches!(&ext.arguments[0],
 		Value::Variant(value::Variant {
 			name,
-			values: value::Composite::Unnamed(args)
+			fields: value::Composite::Unnamed(args)
 		})
 		if &*name == "Balances"
 		&& matches!(&args[0], Value::Variant(value::Variant { name, ..}) if &*name == "transfer")
@@ -169,9 +170,7 @@ fn tips_report_awesome_unsigned() {
 	assert_eq!(ext.arguments.len(), 2);
 	assert_eq!(
 		&ext.arguments[0],
-		&Value::Composite(value::Composite::Unnamed(
-			"This person rocks!".bytes().map(|b| Value::Primitive(value::Primitive::U8(b))).collect()
-		))
+		&Value::Sequence("This person rocks!".bytes().map(|b| Value::Primitive(value::Primitive::U8(b))).collect())
 	);
 }
 

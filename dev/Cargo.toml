@@ -1,0 +1,19 @@
+[package]
+name = "dev"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+core_v14 = { package = "core_v14",  git = "https://github.com/paritytech/desub", branch = "jsdw-desub-new-v14" }
+hex = "0.4.3"
+primitives = { package = "sp-core",  git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
+runtime-primitives = { package = "sp-runtime", git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.9" }
+thiserror = "1.0.22"
+codec = { version = "2", package = "parity-scale-codec", features = ["bit-vec"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+onig = { version = "5.0", default-features = false }
+derive_more = "0.99.3"
+dyn-clone = "1.0"
