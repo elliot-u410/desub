@@ -476,6 +476,15 @@ impl Decoder {
 		Ok(ext)
 	}
 
+	/// Decode a single extrinsic and return the result along with the number of bytes parsed from the input
+	pub fn decode_one_extrinsic(&self, spec: SpecVersion, data: &[u8]) -> Result<(GenericExtrinsic, usize), Error> {
+		let (_length, prefix) = Self::scale_length(data)?;
+		let meta = self.versions.get(&spec).ok_or(Error::MissingSpec(spec))?;
+		let mut state = DecodeState::new(None, None, meta, prefix, spec, data);
+		let result = self.decode_extrinsic(&mut state)?;
+		Ok((result, state.cursor()))
+	}
+
 	/// Decode an extrinsic
 	fn decode_extrinsic(&self, state: &mut DecodeState) -> Result<GenericExtrinsic, Error> {
 		let signature = if state.interpret_version() { Some(self.decode_signature(state)?) } else { None };
